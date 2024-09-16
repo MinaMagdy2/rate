@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم الموقع</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .star {
+            font-size: 30px;
+            cursor: pointer;
+            color: lightgray; /* نجوم فارغة */
+        }
+        .star.checked {
+            color: gold; /* نجوم مملوءة */
+        }
+        .ratings-display {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>قيم موقعنا</h1>
+    <div id="star-rating">
+        <!-- النجوم ستظهر هنا -->
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
+    </div>
+    <button id="submit-rating">إرسال التقييم</button>
+
+    <div class="ratings-display">
+        <h2>التقييمات:</h2>
+        <ul id="ratings-list"></ul>
+    </div>
+
+    <script>
+        const stars = document.querySelectorAll('.star');
+        const submitButton = document.getElementById('submit-rating');
+        const ratingsList = document.getElementById('ratings-list');
+        let selectedRating = 0;
+
+        // إضافة حدث النقر للنجوم
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                selectedRating = this.getAttribute('data-value');
+                updateStars(selectedRating);
+            });
+        });
+
+        submitButton.onclick = function() {
+            if (selectedRating > 0) {
+                saveRating(selectedRating);
+                loadRatings();
+            }
+        };
+
+        function saveRating(rating) {
+            let ratings = JSON.parse(localStorage.getItem('ratings')) || [];
+            // إضافة التقييم بغض النظر عما إذا كان مكررًا
+            ratings.push(rating);
+            localStorage.setItem('ratings', JSON.stringify(ratings));
+        }
+
+        function loadRatings() {
+            ratingsList.innerHTML = '';
+            const ratings = JSON.parse(localStorage.getItem('ratings')) || [];
+            let total = 0;
+
+            ratings.forEach(rating => {
+                const li = document.createElement('li');
+                li.innerHTML = `تقييم: ${getStars(rating)}`;
+                ratingsList.appendChild(li);
+                total += parseInt(rating);
+            });
+
+            const average = ratings.length > 0 ? (total / ratings.length).toFixed(2) : 0;
+            const averageDisplay = document.createElement('p');
+            averageDisplay.innerHTML = `متوسط التقييمات: ${getStars(average)}`;
+            ratingsList.appendChild(averageDisplay);
+        }
+
+        function getStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += (i <= rating) ? '★' : '☆'; // نجمة مملوءة أو فارغة
+            }
+            return stars;
+        }
+
+        function updateStars(rating) {
+            stars.forEach(star => {
+                star.classList.remove('checked'); // إزالة التحديد عن جميع النجوم
+                if (star.getAttribute('data-value') <= rating) {
+                    star.classList.add('checked'); // إضافة التحديد للنجوم المملوءة
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadRatings);
+    </script>
+</body>
+</html>
